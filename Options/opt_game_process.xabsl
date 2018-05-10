@@ -1,4 +1,4 @@
-option opt_game_nearballadjust
+option opt_game_process
 {
     initial state initialize_motors//0
   {

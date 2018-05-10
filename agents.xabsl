@@ -1,7 +1,7 @@
 include "xabsl_symbol.xabsl";
 include "xabsl_behavior.xabsl";
 
-include "Options/opt_game_nearballadjust.xabsl";
+include "Options/opt_game_process.xabsl";            // entry to the game
 include "Options/opt_defender_prepare.xabsl";
 include "Options/opt_walk_with_ball.xabsl";
 include "Options/opt_near_ball_adjust_test_2.xabsl";
@@ -13,4 +13,4 @@ include "Options/opt_go_to_ball.xabsl";
 include "Options/opt_xddd_attack.xabsl";
 include "Options/opt_go_to_fake_ball.xabsl";
 
-agent Decision("Xabsl", opt_game_nearballadjust);
+agent Decision("Xabsl", opt_game_process);
