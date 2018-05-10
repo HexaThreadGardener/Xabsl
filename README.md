@@ -19,6 +19,9 @@ The code at `decision/Xabsl`
  * Behaves: (list all the behaviors used directly in this option, NOT including the ones assigned by the other options it uses)
  * - example_behavior
  * - behavior_nothing
+ *
+ * Calls: (list all the options called directly in this option, NOT including the ones called by the other options it uses)
+ * - opt_another_example_option
  */
 
 option opt_example_option {
