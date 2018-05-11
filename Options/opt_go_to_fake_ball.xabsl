@@ -1,3 +1,7 @@
+// TODO: rename and rewrite this option
+
+
+
 // opt_go_to_fake_ball: the moving process after kicking, without knowing the exact (stationary) location of the ball
 // current strategy: walk directly ahead for 3000(?) microseconds; head up
 

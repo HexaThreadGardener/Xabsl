@@ -1,25 +1,42 @@
-// opt_go_to_ball: Suppose the ball is already seen, go to the ball.
-
-// Input Flags: 
-//      - is_within_tol
-//      - is_left
-//      - is_near_enough
-//      - is_ready_to_kick      # not used
-//
-// Output Flags:
-//      - headMode
+/* opt_go_to_ball: From arbitrary position, suppose the ball is seen, go to ball, and rotate to face the goal.
+ *
+ * Clarification of terms:
+ * For sake of generalization, the terms "left", "right" and "goal" should be interpreted as follows in this option:
+ *  - "goal": the position the robot wants to kick the ball to (not necessarily the actual goal)
+ * Now let's denote robot as R, ball as B, and "goal" as G.
+ *  - "left": the front of the robot and \vec{BG} are on the same side of line RB (see case 2 of opt_go_to_ball.png)
+ *  - "right": the front of the robot and \vec{BG} are on different sides of line RB (see case 1 of opt_go_to_ball.png)
+ *
+ * The strategy:
+ *  - When "left": rotate --> walk an "S" shape --> rotate
+ *  - When "right": rotate --> walk an arc --> rotate
+ * Note: the whole process is Markov.
+ *
+ * Reads: 
+ * - is_within_tol              (whether the ball bearing is small enough for the robot to walk to it without in-place rotating)
+ * - is_left                    (whether the relative position is "left")
+ * - is_near_enough             (whether the robot is near enough to the ball to kick it)
+ *
+ * Writes:
+ * - headMode
+ *
+ * Behaves:
+ * - behavior_nothing
+ * - TODO
+ */
 
 option opt_go_to_ball
 {
-    initial state check_before_walk {
+    initial state check_before_walk {                           // 0
         decision {
-            if (state_time < 100) {  // TODO: change this value
+            if (state_time < T_WAIT_BEFORE_WALK) {
                 stay;
             }
             else {
                 if (is_near_enough) {
-                    // when the ball is already near (e.g. kickoff), use position mode to approach the ball directly
-                    goto approach_ball;
+                    // when the ball is already near (e.g. kickoff), use rotation mode to adjust toward the "goal" directly
+                    // goto rotate_after_walk;
+                    stay;        // TODO: fix this state!
                 }
                 else if (is_within_tol) {
                     if (is_left) {
@@ -35,13 +52,14 @@ option opt_go_to_ball
             }
         }
         action {
-            //headMode = FarMid;
             headMode = HorizontalTrack;
             behavior_nothing();     // wait until the flags are ready
         }
     }
 
-    state rotate_before_walk {
+    // TODO: use the new "rotate" behavior
+
+    state rotate_before_walk {                              // 1
         decision {
             if (is_within_tol) {
                 if (is_left) {
@@ -62,7 +80,7 @@ option opt_go_to_ball
         }
     }
 
-    state during_left_walk {
+    state during_left_walk {                            // 2
         decision {
             if (is_near_enough) {
                 goto prepare_approach_ball;
@@ -82,7 +100,7 @@ option opt_go_to_ball
         }
     }
 
-    state during_right_walk {
+    state during_right_walk {                       // 3
         decision {
             if (is_near_enough) {
                 goto prepare_approach_ball;
@@ -102,7 +120,7 @@ option opt_go_to_ball
         }
     }
 
-    state prepare_approach_ball {
+    state prepare_approach_ball {               // 4
         decision {
             if (is_robot_moving) {
                 stay;
@@ -118,7 +136,7 @@ option opt_go_to_ball
         }
     }
 
-    state wait_before_approach_ball {
+    state wait_before_approach_ball {           // 5
         decision {
             if (state_time < 2000) {
                 stay;
@@ -132,7 +150,7 @@ option opt_go_to_ball
         }
     }
 
-    state approach_ball {
+    state approach_ball {               // 6
         decision {
             if (state_time < 2000) {
                 stay;
@@ -151,7 +169,7 @@ option opt_go_to_ball
         }
     }
 
-    target state go_to_ball_done {
+    target state go_to_ball_done {          // 7
         decision {
             stay;
         }

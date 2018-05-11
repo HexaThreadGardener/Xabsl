@@ -1,34 +1,40 @@
+/*
+ * opt_defender_prepare: the defending option.
+ *
+ * Inherited from 2017, not maintained yet.
+ */
+
 option opt_defender_prepare
 {
-    initial state walk_to_center
-  {
-    decision
-    {      
-      if (isSet)
-      {
-        goto stop;
-      }
-      else
-      {
-        stay;
-      }
-    }
-    action
+    initial state walk_to_center    // 0
     {
-      target_range =3;
-      behavior_step_forward(); 
+        decision
+        {
+            if (isSet)
+            {
+                goto stop;
+            }
+            else
+            {
+                stay;
+            }
+        }
+        action
+        {
+            target_range =3;
+            behavior_step_forward();
+        }
     }
-  }
 
-    target state stop
-  {
-    decision
-    {      
-        stay;
-    }
-    action
+    target state stop           // 1
     {
-      behavior_nothing();
+        decision
+        {
+            stay;
+        }
+        action
+        {
+            behavior_nothing();
+        }
     }
-  }
-  }
+}
