@@ -12,6 +12,7 @@
  * Writes:
  * - headMode
  * - kick_speed
+ * - attackMode
  *
  * Behaves:
  * - behavior_nothing
@@ -201,7 +202,13 @@ option opt_game_process
             }
         }
         action {
-            opt_xddd_attack();
+            // Alternative 1: Kick to the side, follow the ball, turn and shoot
+            attackMode = kick_kick;
+            opt_attack();
+
+            // Alternative 2: Dribble to the side, turn and shoot
+            // attackMode = dribble_kick;
+            // opt_attack();
         }
     }
 

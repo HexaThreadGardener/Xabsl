@@ -19,7 +19,13 @@ namespace xabsl_symbol("xabsl_symbols")
     float const THETA_TOL = 0.2 "rad";            // maximum ball bearing when starting to go to ball
     float const R_TOL = 3 "m";                    // minimum radius of arc walking
 
-    float const R_KICKABLE = 0.5 "m";             // the maximum ballBearing when kicking can be performed
+    float const R_KICKABLE = 0.3 "m";             // the maximum ballBearing when kicking can be performed
+
+    float const R_KICKOFF = 0.2 "m";              // the radius with which to center around the ball at kick off
+    float const THETA_KICKOFF = 0.5 "rad";        // the angle to rotate at kick off (anti-clockwise)
+    float const T_FOLLOW_AFTER_KICK_OFF = 3000 "ms";      // maximum time to walk after kick off
+    float const T_BLIND_FOLLOW_AFTER_SHOOT = 3000 "ms";   // maximum time to walk after shooting before the ball is seen (if ball is not seen longer than this time, search again)
+    
     
     
     
@@ -76,6 +82,11 @@ namespace xabsl_symbol("xabsl_symbols")
         BothTrack,
 
         TrackBallAndGoal  // add this mode?
+    };
+
+    enum _attackMode {
+        kick_kick,        // first kick along an angle toward the side, then shoot
+        dribble_kick      // first dribble along an angle toward the side, then shoot
     };
 
     /** ----- Input ----- */
@@ -220,4 +231,6 @@ namespace xabsl_symbol("xabsl_symbols")
     float input virtualGoalRange "m";
     float input virtualGoalBearing "rad";
     float input theta_start_walking "rad";
+
+    enum _attackMode internal attackMode;
 }
