@@ -4,16 +4,23 @@ namespace xabsl_symbol("xabsl_symbols")
 {
 
     /** ----- Constants ----------------------*/
-    float const T_MOTOR_INIT = 10000;        // time needed for "behavior_initialize_motors"
-    float const T_INIT = 2000;               // time needed for "behavior_initializing"
-    float const T_IDLE = 3000;               // time to wait in idle state
-    float const T_WAIT_BEFORE_WALK = 200;    // time to wait before walking in opt_go_to_ball; symbols is_within_tol, is_left and is_near_enough should be updated by @cpp during this period
-    float const T_WAIT_BEFORE_KICK = 1000;   // time to wait before kicking the ball; TODO: why is there such a long delay?
-    float const T_KICK = 2000;               // time needed for the kicking behaviors
-    float const T_SEARCH_BALL = 2000;        // time needed for the head to stay in each direction when searching for ball
-    float const T_BALL_SEEN = 1000;          // time to wait for updating ball bearing, range 
-    float const T_TURN_BODY = 2000;          // minimum time for turning body after ball is seen
-    float const THETA_TURN_BODY_SEARCH = 100;       // the angle to turn the body if ball is not seen in a search loop
+    float const T_MOTOR_INIT = 10000 "ms";        // time needed for "behavior_initialize_motors"
+    float const T_INIT = 2000 "ms";               // time needed for "behavior_initializing"
+    float const T_IDLE = 3000 "ms";               // time to wait in idle state
+    float const T_WAIT_BEFORE_WALK = 200 "ms";    // time to wait before walking in opt_go_to_ball; symbols is_left and is_near_enough should be updated by @cpp during this period
+    float const T_WAIT_BEFORE_KICK = 1000 "ms";   // time to wait before kicking the ball; TODO: why is there such a long delay?
+    float const T_KICK = 2000 "ms";               // time needed for the kicking behaviors
+    float const T_SEARCH_BALL = 2000 "ms";        // time needed for the head to stay in each direction when searching for ball
+    float const T_BALL_SEEN = 1000 "ms";          // time to wait for updating ball bearing, range 
+    float const T_TURN_BODY = 2000 "ms";          // minimum time for in-place rotating behavior
+    float const THETA_TURN_BODY_SEARCH = 100 "deg";       // the angle to turn the body if ball is not seen in a search loop
+    
+    // Note: is_within_tol should be set when BOTH THETA_TOL and R_TOL are satisfied
+    float const THETA_TOL = 0.2 "rad";            // maximum ball bearing when starting to go to ball
+    float const R_TOL = 3 "m";                    // minimum radius of arc walking
+
+    float const R_KICKABLE = 0.5 "m";             // the maximum ballBearing when kicking can be performed
+    
     
     
     /** ----- Data structure definition ----- */
@@ -207,7 +214,10 @@ namespace xabsl_symbol("xabsl_symbols")
 
     // Additions 2018
     bool input is_within_tol;
-    bool input is_left;
-    bool input is_near_enough;
-    bool input is_ready_to_kick;    // not used
+    float input tol_theta "rad";
+    float output virtualGoalLoc.World.x "m";
+    float output virtualGoalLoc.World.y "m";
+    float input virtualGoalRange "m";
+    float input virtualGoalBearing "rad";
+    float input theta_start_walking "rad";
 }

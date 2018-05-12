@@ -1,8 +1,8 @@
-/* opt_go_to_ball: From arbitrary position, suppose the ball is seen, go to ball, and rotate to face the goal.
+/* opt_go_to_ball: From arbitrary position, suppose the ball is seen, go to ball, and rotate to face the "goal".
  *
  * Clarification of terms:
  * For sake of generalization, the terms "left", "right" and "goal" should be interpreted as follows in this option:
- *  - "goal": the position the robot wants to kick the ball to (not necessarily the actual goal)
+ *  - "goal": the position the robot wants to kick the ball to (not necessarily the actual goal); pass this parameter using variables virtualGoalLoc.World.{x,y}
  * Now let's denote robot as R, ball as B, and "goal" as G.
  *  - "left": the front of the robot and \vec{BG} are on the same side of line RB (see case 2 of opt_go_to_ball.png)
  *  - "right": the front of the robot and \vec{BG} are on different sides of line RB (see case 1 of opt_go_to_ball.png)
@@ -14,15 +14,27 @@
  *
  * Reads: 
  * - is_within_tol              (whether the ball bearing is small enough for the robot to walk to it without in-place rotating)
- * - is_left                    (whether the relative position is "left")
- * - is_near_enough             (whether the robot is near enough to the ball to kick it)
+ * - theta_start_walking        (expected abs(ball bearing) when walking is started, determined by min(THETA_TOL, <theta determined by R_TOL>))
+ * - virtualGoalLoc.World.x     (specified by caller in XABSL)
+ * - virtualGoalLoc.World.y     (specified by caller in XABSL)
+ * - virtualGoalBearing         (given by @cpp)
+ * - ballRange
+ * - ballBearing
+ * - is_robot_moving
  *
  * Writes:
  * - headMode
+ * - target_theta
+ * - target_range
  *
  * Behaves:
  * - behavior_nothing
- * - TODO
+ * - behavior_round_clockwise
+ * - behavior_during_walk
+ * - behavior_stop_walk
+ * - behavior_center_round_clockwise
+ *
+ * TODO: this part needs review
  */
 
 option opt_go_to_ball
@@ -33,18 +45,12 @@ option opt_go_to_ball
                 stay;
             }
             else {
-                if (is_near_enough) {
+                if (ballRange < R_KICKABLE) {
                     // when the ball is already near (e.g. kickoff), use rotation mode to adjust toward the "goal" directly
-                    // goto rotate_after_walk;
-                    stay;        // TODO: fix this state!
+                    goto rotate_after_walk;
                 }
                 else if (is_within_tol) {
-                    if (is_left) {
-                        goto during_left_walk;
-                    }
-                    else {
-                        goto during_right_walk;
-                    }
+                    goto during_walk;
                 }
                 else {
                     goto rotate_before_walk;
@@ -53,81 +59,69 @@ option opt_go_to_ball
         }
         action {
             headMode = HorizontalTrack;
-            behavior_nothing();     // wait until the flags are ready
+            behavior_nothing();     // wait until is_within_tol and theta_start_walking are ready
+
+            /* pseudocode of updating is_within_tol theta_start_walking, virtualGoalRange, virtualGoalBearing:
+                delta_x = virtualGoalLoc.World.x - robotLoc.x;
+                delta_y = virtualGoalLoc.World.y - robotLoc.y;
+                virtualGoalRange = sqrt(delta_x ^ 2 + delta_y ^ 2);
+                cosVirtualGoalBearing = delta_x / virtualGoalRange;
+                virtualGoalBearing = acos(cosVirtualGoalBearing);
+                is_left = ballRange * cos(ballBearing) < virtualGoalRange * cosVirtualGoalRange;
+                R = is_left ? ballRange / (4 * sin(ballBearing)) : ballRange / (2 * sin(ballBearing));      // radius of arc walking
+                theta_by_R = is_left ? asin(ballRange / (4 * R_TOL)) : asin(ballRange / (2 * R_TOL));
+                theta_start_walking = min(THETA_TOL, theta_by_R);
+                is_within_tol = (abs(ballBearing) < THETA_TOL) && (R > R_TOL);
+            */
         }
     }
 
-    // TODO: use the new "rotate" behavior
-
     state rotate_before_walk {                              // 1
         decision {
-            if (is_within_tol) {
-                if (is_left) {
-                    goto during_left_walk;
-                }
-                else {
-                    goto during_right_walk;
-                }
+            if (state_time < T_TURN_BODY || is_robot_moving) {
+                stay;
+            }
+            else {
+                goto during_walk;
+            }
+        }
+        action {
+            headMode = HorizontalTrack;
+            target_theta = (ballBearing > 0) ? (ballBearing - theta_start_walking) : (ballBearing + theta_start_walking);         // TODO: here it is assumed that anti-clockwise is the positive direction of ballBearing; correct it if necessary
+            behavior_round_clockwise();
+        }
+    }
+
+    state during_walk {                            // 2
+        decision {
+            if (ballRange < R_KICKABLE) {
+                goto stop_walking;
             }
             else {
                 stay;
             }
         }
         action {
-            //headMode = FarMid;
-            headMode = HorizontalTrack;
-            behavior_rotate_before_walk();
-        }
-    }
-
-    state during_left_walk {                            // 2
-        decision {
-            if (is_near_enough) {
-                goto prepare_approach_ball;
-            }
-            else {
-                if (is_left) {
-                    stay;
-                }
-                else {
-                    goto during_right_walk;
-                }
-            }
-        }
-        action {
             headMode = BothTrack;
-            behavior_during_left_walk();
+
+            /*
+            Use velocity mode. Pseudocode for the parameters:
+            v_x = V_X_MAX;
+            v_y = 0;
+            sign = (is_left xor ballBearing > 0) ? -1 : 1;  // TODO: here it is assumed that anti-clockwise is the positive direction; correct it if necessary
+            v_theta = sign * V_X_MAX / R;      // TODO: or maybe v_theta = sign * V_X_MAX^2 / R, depending on the implementation of gait; the purpose is to walk along an arc of radius R
+            */
+            behavior_during_walk();
         }
     }
 
-    state during_right_walk {                       // 3
-        decision {
-            if (is_near_enough) {
-                goto prepare_approach_ball;
-            }
-            else {
-                if (!is_left) {
-                    stay;
-                }
-                else {
-                    goto during_left_walk;
-                }
-            }
-        }
-        action {
-            headMode = BothTrack;
-            behavior_during_right_walk();
-        }
-    }
-
-    state prepare_approach_ball {               // 4
+    state stop_walking {               // 3
         decision {
             if (is_robot_moving) {
                 stay;
             }
             else {
-                goto go_to_ball_done;
-                //goto wait_before_approach_ball;
+                goto rotate_after_walk;
             }
         }
         action {
@@ -136,40 +130,25 @@ option opt_go_to_ball
         }
     }
 
-    state wait_before_approach_ball {           // 5
+    state rotate_after_walk {               // 4
         decision {
-            if (state_time < 2000) {
-                stay;
-            } else {
-                goto approach_ball;
-            }
-        }
-        action {
-            //headMode = FarMid;
-            behavior_nothing();
-        }
-    }
-
-    state approach_ball {               // 6
-        decision {
-            if (state_time < 2000) {
+            if (state_time < T_TURN_BODY || is_robot_moving) {
                 stay;
             }
-            else {
-            if (is_robot_moving)
-            {stay;}
             else {
                 goto go_to_ball_done;
-                }
             }
         }
         action {
-            //headMode = FarMid;
-            behavior_approach_ball();
+            // look at goal and center around ball
+            headMode = FarMid;
+            target_theta = -virtualGoalBearing; // TODO: assume anti-clockwise as positive; fix if necessary
+            target_range = ballRange;
+            behavior_center_round_clockwise();
         }
     }
 
-    target state go_to_ball_done {          // 7
+    target state go_to_ball_done {          // 5
         decision {
             stay;
         }
