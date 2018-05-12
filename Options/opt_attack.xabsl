@@ -92,8 +92,7 @@ option opt_attack {
                             goto first_kick;
                         }
                         else if (attackMode == dribble_kick) {
-                            // TODO: implement this strategy
-                            stay;
+                            goto dribble;
                         }
                         else {
                             // ERROR: illegal attack mode
@@ -346,7 +345,30 @@ option opt_attack {
         }
     }
 
-    target state attack_done {              // 11
+    state dribble {                         // 11
+        // used by dribble_kick mode
+        decision {
+            if (!isAttacker) {
+                goto attack_done;
+            }
+            else {
+                if (state_time < T_DRIBBLE) {
+                    stay;
+                }
+                else {
+                    goto stop_before_shoot;
+                }
+            }
+        }
+        action {
+            // look at goal (no look dribble? [lol])
+            headMode = THETA_KICKOFF > 0 ? FarLeft : FarRight;
+            // walk with v_x = max, v_y = v_theta = 0
+            behavior_walk();
+        }
+    }
+
+    target state attack_done {              // 12
         decision {
             stay;
         }

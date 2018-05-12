@@ -25,6 +25,7 @@ namespace xabsl_symbol("xabsl_symbols")
     float const THETA_KICKOFF = 0.5 "rad";        // the angle to rotate at kick off (anti-clockwise)
     float const T_FOLLOW_AFTER_KICK_OFF = 3000 "ms";      // maximum time to walk after kick off
     float const T_BLIND_FOLLOW_AFTER_SHOOT = 3000 "ms";   // maximum time to walk after shooting before the ball is seen (if ball is not seen longer than this time, search again)
+    float const T_DRIBBLE = 4000 "ms";            // dribbling time used in dribble_kick attack mode
     
     
     
