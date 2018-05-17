@@ -98,7 +98,7 @@ option opt_go_to_ball
     state during_walk {                            // 2
         decision {
             if (ballRange < R_KICKABLE) {
-                goto stop_walking;
+                goto stop_walking_1;
             }
             else {
                 stay;
@@ -120,13 +120,13 @@ option opt_go_to_ball
         }
     }
 
-    state stop_walking {               // 3
+    state stop_walking_1 {               // 3
         decision {
             if (is_robot_moving) {
                 stay;
             }
             else {
-                goto rotate_after_walk;
+                goto stop_walking_2;
             }
         }
         action {
@@ -135,7 +135,22 @@ option opt_go_to_ball
         }
     }
 
-    state rotate_after_walk {               // 4
+    state stop_walking_2 {              // 4
+        decision {
+            if (state_time < 2 * T) {
+                stay;
+            }
+            else {
+                goto rotate_after_walk;
+            }
+        }
+        action {
+            headMode = BothTrack;
+            behavior_nothing();
+        }
+    }
+
+    state rotate_after_walk {               // 5
         decision {
             if (state_time < T_TURN_BODY || is_robot_moving) {
                 stay;
@@ -153,7 +168,7 @@ option opt_go_to_ball
         }
     }
 
-    target state go_to_ball_done {          // 5
+    target state go_to_ball_done {          // 6
         decision {
             stay;
         }

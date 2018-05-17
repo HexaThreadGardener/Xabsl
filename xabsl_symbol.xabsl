@@ -4,6 +4,7 @@ namespace xabsl_symbol("xabsl_symbols")
 {
 
     /** ----- Constants ----------------------*/
+    float const T = 100 "ms";                     // clock period
     float const T_MOTOR_INIT = 10000 "ms";        // time needed for "behavior_initialize_motors"
     float const T_INIT = 2000 "ms";               // time needed for "behavior_initializing"
     float const T_IDLE = 3000 "ms";               // time to wait in idle state

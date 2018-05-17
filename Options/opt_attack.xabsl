@@ -145,7 +145,7 @@ option opt_attack {
                 if (state_time > T_FOLLOW_AFTER_KICK_OFF) {
                     if (isBallSeen) {
                         // have walked for long enough, stop and prepare to kick the ball
-                        goto stop_before_shoot;
+                        goto stop_1_before_shoot;
                     }
                     else {
                         // the ball is lost, search for it again
@@ -155,7 +155,7 @@ option opt_attack {
                 else {
                     if (isBallSeen && ballRange < R_KICKABLE) {
                         // the ball is already very close, stop and prepare to kick it
-                        goto stop_before_shoot;
+                        goto stop_1_before_shoot;
                     }
                     else {
                         // the ball is too far, continue walking
@@ -171,7 +171,7 @@ option opt_attack {
         }
     }
 
-    state stop_before_shoot {               // 4
+    state stop_1_before_shoot {               // 4
         decision {
             if (!isAttacker) {
                 goto attack_done;
@@ -181,7 +181,7 @@ option opt_attack {
                     stay;
                 }
                 else {
-                    goto rotate_before_shoot;
+                    goto stop_2_before_shoot;
                 }
             }
         }
@@ -194,7 +194,27 @@ option opt_attack {
         }
     }
 
-    state rotate_before_shoot {             // 5
+    state stop_2_before_shoot {             // 5
+        decision {
+            if (!isAttacker) {
+                goto attack_done;
+            }
+            else {
+                if (state_time < 2 * T) {
+                    stay;
+                }
+                else {
+                    goto rotate_before_shoot;
+                }
+            }
+        }
+        action {
+            headMode = FarMid;
+            behavior_nothing();
+        }
+    }
+
+    state rotate_before_shoot {             // 6
         decision {
             if (!isAttacker) {
                 goto attack_done;
@@ -221,7 +241,7 @@ option opt_attack {
         }
     }
 
-    state shoot {                           // 6
+    state shoot {                           // 7
         decision {
             if (!isAttacker) {
                 goto attack_done;
@@ -245,7 +265,7 @@ option opt_attack {
         }
     }
 
-    state blind_follow_after_shoot {        // 7
+    state blind_follow_after_shoot {        // 8
         // walk with head up until the ball is seen; search again if the ball is not seen for too long (>T_BLIND_FOLLOW_AFTER_SHOOT)
         decision {
             if (!isAttacker) {
@@ -275,7 +295,7 @@ option opt_attack {
         }
     }
 
-    state track_after_shoot {               // 8
+    state track_after_shoot {               // 9
         decision {
             if (!isAttacker) {
                 goto attack_done;
@@ -287,7 +307,7 @@ option opt_attack {
                 else {
                     if (ballRange < R_KICKABLE) {
                         // ball is near enough, prepare to shoot again
-                        goto stop_before_shoot;
+                        goto stop_1_before_shoot;
                     }
                     else {
                         stay;
@@ -304,7 +324,7 @@ option opt_attack {
         }
     }
 
-    state search_after_lost {               // 9
+    state search_after_lost {               // 10
         decision {
             if (!isAttacker) {
                 goto attack_done;
@@ -323,7 +343,7 @@ option opt_attack {
         }
     }
 
-    state go_to_ball_from_any {             // 10
+    state go_to_ball_from_any {             // 11
         decision {
             if (!isAttacker) {
                 goto attack_done;
@@ -342,7 +362,7 @@ option opt_attack {
         }
     }
 
-    state dribble {                         // 11
+    state dribble {                         // 12
         // used by dribble_kick mode
         decision {
             if (!isAttacker) {
@@ -353,7 +373,7 @@ option opt_attack {
                     stay;
                 }
                 else {
-                    goto stop_before_shoot;
+                    goto stop_1_before_shoot;
                 }
             }
         }
@@ -365,7 +385,7 @@ option opt_attack {
         }
     }
 
-    target state attack_done {              // 12
+    target state attack_done {              // 13
         decision {
             stay;
         }
