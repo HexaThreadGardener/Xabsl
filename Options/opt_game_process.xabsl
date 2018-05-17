@@ -96,7 +96,7 @@ option opt_game_process
         }
         action
         {
-            headMode = CloseMid;
+            //headMode = CloseMid;
             behavior_nothing();
         }
     }
