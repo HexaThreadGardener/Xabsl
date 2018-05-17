@@ -3,7 +3,6 @@ include "xabsl_behavior.xabsl";
 
 include "Options/opt_game_process.xabsl";            // entry to the game
 include "Options/opt_defender_prepare.xabsl";
-include "Options/opt_near_ball_adjust_test_2.xabsl";
 include "Options/opt_penalty.xabsl";
 include "Options/opt_free_kick.xabsl";
 include "Options/opt_kick_ball.xabsl";

@@ -46,7 +46,8 @@ option opt_penalty
         action
         {
             kick_speed = 2;
-            opt_near_ball_adjust_test_2();
+            // opt_near_ball_adjust_test_2();
+            behavior_nothing();  // TODO: check this for 2018
         }
     }
 
