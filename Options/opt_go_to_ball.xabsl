@@ -88,7 +88,8 @@ option opt_go_to_ball
         action {
             headMode = HorizontalTrack;
             target_theta = (ballBearing > 0) ? (ballBearing - theta_start_walking) : (ballBearing + theta_start_walking);         // TODO: here it is assumed that anti-clockwise is the positive direction of ballBearing; correct it if necessary
-            behavior_round_clockwise();
+            target_x = 0;
+            behavior_rotate_around_center();
         }
     }
 
@@ -143,8 +144,8 @@ option opt_go_to_ball
             // look at goal and center around ball
             headMode = FarMid;
             target_theta = -virtualGoalBearing; // TODO: assume anti-clockwise as positive; fix if necessary
-            target_range = ballRange;
-            behavior_center_round_clockwise();
+            target_x = ballRange;
+            behavior_rotate_around_center();
         }
     }
 

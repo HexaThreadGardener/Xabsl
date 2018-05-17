@@ -402,10 +402,11 @@ option opt_search_for_ball_kick_off
             }
         }
         action {
+            target_x = 0;
             target_theta = THETA_TURN_BODY_SEARCH;
             headMode = FarMid;
             search_loop_complete = false;
-            behavior_round_clockwise();
+            behavior_rotate_around_center();
         }
     }
 

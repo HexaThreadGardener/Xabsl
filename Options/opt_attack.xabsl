@@ -105,8 +105,8 @@ option opt_attack {
         action {
             headMode = HorizontalTrack;
             target_theta = -THETA_KICKOFF;
-            target_range = R_KICKOFF;
-            behavior_center_round_clockwise();
+            target_x = R_KICKOFF;
+            behavior_rotate_around_center();
         }
     }
 
@@ -216,8 +216,8 @@ option opt_attack {
         action {
             headMode = HorizontalTrack;
             target_theta = -goalCenterBearing;      // TODO: anti-clockwise as positive, correct if necessary
-            target_range = ballRange;
-            behavior_center_round_clockwise();
+            target_x = ballRange;
+            behavior_rotate_around_center();
         }
     }
 
