@@ -17,13 +17,13 @@ namespace xabsl_symbol("xabsl_symbols")
     float const THETA_TURN_BODY_SEARCH = 100 "deg";       // the angle to turn the body if ball is not seen in a search loop
     
     // Note: is_within_tol should be set when BOTH THETA_TOL and R_TOL are satisfied
-    float const THETA_TOL = 0.2 "rad";            // maximum ball bearing when starting to go to ball
+    float const THETA_TOL = 0.1 "rad";            // maximum ball bearing when starting to go to ball
     float const R_TOL = 3 "m";                    // minimum radius of arc walking
 
-    float const R_KICKABLE = 0.3 "m";             // the maximum ballBearing when kicking can be performed
+    float const R_KICKABLE = 0.6 "m";             // the maximum ballBearing when kicking can be performed
 
     float const R_KICKOFF = 0.2 "m";              // the radius with which to center around the ball at kick off
-    float const THETA_KICKOFF = 0.5 "rad";        // the angle to rotate at kick off (anti-clockwise)
+    float const THETA_KICKOFF = -0.5 "rad";        // the angle to rotate at kick off (anti-clockwise)
     float const T_FOLLOW_AFTER_KICK_OFF = 3000 "ms";      // maximum time to walk after kick off
     float const T_BLIND_FOLLOW_AFTER_SHOOT = 3000 "ms";   // maximum time to walk after shooting before the ball is seen (if ball is not seen longer than this time, search again)
     float const T_DRIBBLE = 4000 "ms";            // dribbling time used in dribble_kick attack mode
