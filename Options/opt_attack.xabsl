@@ -266,7 +266,7 @@ option opt_attack {
             // look at goal
             headMode = FarMid;
 
-            // kick strongly
+            // walking kick
             kick_speed = 2;
             opt_kick_ball();
         }
