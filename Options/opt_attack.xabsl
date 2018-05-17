@@ -229,7 +229,13 @@ option opt_attack {
                         goto search_after_lost;
                     }
                     else {
-                        goto shoot;
+                        if (isGoalSeen) {
+                            goto shoot;
+                        }
+                        else {
+                            // TODO: figure out what to do
+                            goto attack_done;
+                        }
                     }
                 }
             }
