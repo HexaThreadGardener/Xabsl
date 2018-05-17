@@ -22,7 +22,7 @@ option opt_defender_prepare
         action
         {
             target_range =3;
-            behavior_step_forward();
+            behavior_step_forward();  // TODO: change this for a special behavior return_to_my_half
         }
     }
 
