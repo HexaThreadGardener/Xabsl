@@ -204,7 +204,7 @@ option opt_game_process
         }
         action {
             // Alternative 1: Kick to the side, follow the ball, turn and shoot
-            attackMode = kick_kick;
+            attackMode = dribble_kick;
             opt_attack();
 
             // Alternative 2: Dribble to the side, turn and shoot
