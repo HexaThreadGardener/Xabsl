@@ -103,7 +103,7 @@ option opt_attack {
             }
         }
         action {
-            headMode = HorizontalTrack;
+            //headMode = HorizontalTrack;
             target_theta = -THETA_KICKOFF;
             target_x = R_KICKOFF;
             behavior_rotate_around_center();
@@ -187,7 +187,8 @@ option opt_attack {
         }
         action {
             // look at the goal
-            headMode = THETA_KICKOFF > 0 ? FarLeft : FarRight;
+            //headMode = THETA_KICKOFF > 0 ? FarLeft : FarRight;
+            headMode = FarMid;
 
             // set velocity to 0
             behavior_stop_walk();
@@ -234,7 +235,7 @@ option opt_attack {
             }
         }
         action {
-            headMode = HorizontalTrack;
+            //headMode = HorizontalTrack;
             target_theta = -goalCenterBearing;      // TODO: anti-clockwise as positive, correct if necessary
             target_x = ballRange;
             behavior_rotate_around_center();
@@ -379,7 +380,9 @@ option opt_attack {
         }
         action {
             // look at goal (no look dribble? [lol])
-            headMode = THETA_KICKOFF > 0 ? FarLeft : FarRight;
+            // headMode = THETA_KICKOFF > 0 ? FarLeft : FarRight;
+            headMode = CloseMid;
+            
             // walk with v_x = max, v_y = v_theta = 0
             behavior_walk();
         }

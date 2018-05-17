@@ -64,6 +64,7 @@ option opt_game_process
         }
         action
         {
+            headMode = FarMid;
             behavior_initialize_motors(); // sends commands type 10 to robot to initialize motors
         }
     }
