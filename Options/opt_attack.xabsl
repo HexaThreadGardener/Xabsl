@@ -300,7 +300,7 @@ option opt_attack {
 
             // rectify direction according to the ball
             // walk with v_x = max, v_y = 0, v_theta = k * ballBearing  (k is an empirical parameter)
-            behavior_walk_with_ball();
+            behavior_walk_to_ball();
         }
     }
 
@@ -338,9 +338,6 @@ option opt_attack {
             }
         }
         action {
-            // pass the goal location to opt_go_to_ball
-            virtualGoalLoc.World.x = (goalLocLeft.World.x + goalLocRight.World.x) / 2;
-            virtualGoalLoc.World.y = (goalLocLeft.World.y + goalLocRight.World.y) / 2;
             opt_go_to_ball();
         }
     }

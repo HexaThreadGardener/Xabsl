@@ -15,9 +15,9 @@
  * Reads: 
  * - is_within_tol              (whether the ball bearing is small enough for the robot to walk to it without in-place rotating)
  * - theta_start_walking        (expected abs(ball bearing) when walking is started, determined by min(THETA_TOL, <theta determined by R_TOL>))
- * - virtualGoalLoc.World.x     (specified by caller in XABSL)
- * - virtualGoalLoc.World.y     (specified by caller in XABSL)
- * - virtualGoalBearing         (given by @cpp)
+ * - virtualGoalLoc.World.x     (specified by caller in XABSL, NOT USED FOR NOW)
+ * - virtualGoalLoc.World.y     (specified by caller in XABSL, NOT USED FOR NOW)
+ * - virtualGoalBearing         (given by @cpp, NOT USED FOR NOW)
  * - ballRange
  * - ballBearing
  * - is_robot_moving
@@ -35,6 +35,8 @@
  * - behavior_center_round_clockwise
  *
  * TODO: this part needs review
+ *
+ * NOTE: the arc/S logic is NOT implemented for now!
  */
 
 option opt_go_to_ball
@@ -111,8 +113,10 @@ option opt_go_to_ball
             v_y = 0;
             sign = (is_left xor ballBearing > 0) ? -1 : 1;  // TODO: here it is assumed that anti-clockwise is the positive direction; correct it if necessary
             v_theta = sign * V_X_MAX / R;      // TODO: or maybe v_theta = sign * V_X_MAX^2 / R, depending on the implementation of gait; the purpose is to walk along an arc of radius R
+
+            NOTE: the logic above is not USED for now!
             */
-            behavior_during_walk();
+            behavior_walk_to_ball();
         }
     }
 
