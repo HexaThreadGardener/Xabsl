@@ -25,14 +25,15 @@
  *
  * Behaves:
  * - behavior_nothing
- * - behavior_center_round_clockwise
+ * - behavior_rotate_around_center
  * - behavior_walk
  * - behavior_stop_walk
- * - behavior_walk_with_ball
+ * - behavior_walk_to_ball
  *
  * Calls:
  * - opt_kick_ball
  * - opt_search_for_ball_kick_off
+ * - opt_search_for_goal
  */
 
 /* The decision template:
