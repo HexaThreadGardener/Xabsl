@@ -128,7 +128,7 @@ option opt_game_process
         }
     }
 
-    state initializing                  // 3  // not needed?
+    state initializing                  // 3  // TODO: not needed?
     {
         decision
         {
@@ -198,7 +198,7 @@ option opt_game_process
                     stay;
                 }
                 else {
-                    goto game_over;     // TODO: what to do after an attack is done?
+                    stay;     // TODO: what to do after an attack is done? 
                     // -> attack till a goal is scored. check isReady in all states after wait_for start
                     // if isReady, goto wait_for_ready !!!!
                 }
@@ -282,7 +282,7 @@ option opt_game_process
         }
     }
 
-    state go_to_ball        // 7
+    state go_to_ball        // 8
     {
         decision
         {
@@ -298,7 +298,7 @@ option opt_game_process
                 }
                 else {
                     // TODO: this part may need to be revised
-                    goto shoot;
+                    goto shoot;  
                 }
             }
         }
@@ -308,7 +308,7 @@ option opt_game_process
         }
     }
 
-    state shoot {                           // 7
+    state shoot {                           // 9
         decision {
             if (isGameOver) {
                 goto game_over;
@@ -335,7 +335,7 @@ option opt_game_process
         }
     }
 
-    state penalty    // 8
+    state penalty    // 10
     {
         decision
         {
@@ -362,7 +362,7 @@ option opt_game_process
         }
     }
 
-    state free_kick    // 9
+    state free_kick    // 11
     {
         decision
         {
@@ -389,7 +389,7 @@ option opt_game_process
         }
     }
 
-    state time_out        // 10
+    state time_out        // 12
     {
         decision
         {
@@ -407,7 +407,7 @@ option opt_game_process
     }
 
 
-    target state game_over    // 11
+    target state game_over    // 13
     {
         decision
         {
