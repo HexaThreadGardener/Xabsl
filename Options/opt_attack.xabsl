@@ -205,7 +205,7 @@ option opt_attack {
                     stay;
                 }
                 else {
-                    goto rotate_before_shoot;
+                    goto rotate_to_ball_before_shoot;
                 }
             }
         }
@@ -215,7 +215,7 @@ option opt_attack {
         }
     }
 
-    state rotate_before_shoot {             // 6
+    state rotate_to_ball_before_shoot {             // 6
         decision {
             if (!isAttacker) {
                 goto attack_done;
@@ -229,13 +229,7 @@ option opt_attack {
                         goto search_after_lost;
                     }
                     else {
-                        if (isGoalSeen) {
-                            goto shoot;
-                        }
-                        else {
-                            // TODO: figure out what to do
-                            goto attack_done;
-                        }
+                        goto rotate_to_goal_before_shoot;
                     }
                 }
             }
@@ -243,13 +237,60 @@ option opt_attack {
         action {
             //headMode = HorizontalTrack;
             headMode = CloseMid;
-            target_theta = -goalCenterBearing;      // TODO: anti-clockwise as positive, correct if necessary
+            target_theta = ballBearing;      // TODO: anti-clockwise as positive, correct if necessary
+            target_x = 0;
+            behavior_rotate_around_center();
+        }
+    }
+
+    state rotate_to_goal_before_shoot {             // 7
+        decision {
+            if (!isAttacker) {
+                goto attack_done;
+            }
+            else {
+                if (state_time < T_TURN_BODY || is_robot_moving) {
+                    stay;
+                }
+                else {
+                    if (isGoalSeen) {
+                        goto shoot;
+                    }
+                    else {
+                        goto search_for_goal;
+                    }
+                }
+            }
+        }
+        action {
+            //headMode = HorizontalTrack;
+            headMode = FarMid;
+            target_theta = goalCenterBearing;      // TODO: anti-clockwise as positive, correct if necessary
             target_x = ballRange;
             behavior_rotate_around_center();
         }
     }
 
-    state shoot {                           // 7
+    state search_for_goal {   //8
+        decision {
+		    if (!isAttacker) {
+		        goto attack_done;
+		    }
+		    else {
+                if (!action_done) {
+                    stay;
+                }
+                else {
+                    goto rotate_to_goal_before_shoot;
+                }
+            }
+        }
+        action {
+            opt_search_for_goal();
+        }
+    }
+
+    state shoot {                           // 9
         decision {
             if (!isAttacker) {
                 goto attack_done;
@@ -273,7 +314,7 @@ option opt_attack {
         }
     }
 
-    state blind_follow_after_shoot {        // 8
+    state blind_follow_after_shoot {        // 10
         // walk with head up until the ball is seen; search again if the ball is not seen for too long (>T_BLIND_FOLLOW_AFTER_SHOOT)
         decision {
             if (!isAttacker) {
@@ -303,7 +344,7 @@ option opt_attack {
         }
     }
 
-    state track_after_shoot {               // 9
+    state track_after_shoot {               // 11
         decision {
             if (!isAttacker) {
                 goto attack_done;
@@ -332,7 +373,7 @@ option opt_attack {
         }
     }
 
-    state search_after_lost {               // 10
+    state search_after_lost {               // 12
         decision {
             if (!isAttacker) {
                 goto attack_done;
@@ -351,7 +392,7 @@ option opt_attack {
         }
     }
 
-    state go_to_ball_from_any {             // 11
+    state go_to_ball_from_any {             // 13
         decision {
             if (!isAttacker) {
                 goto attack_done;
@@ -370,7 +411,7 @@ option opt_attack {
         }
     }
 
-    state dribble {                         // 12
+    state dribble {                         // 14
         // used by dribble_kick mode
         decision {
             if (!isAttacker) {
@@ -395,7 +436,7 @@ option opt_attack {
         }
     }
 
-    target state attack_done {              // 13
+    target state attack_done {              // 15
         decision {
             stay;
         }
