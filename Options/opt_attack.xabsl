@@ -13,12 +13,15 @@
  * - isBallSeen
  * - is_robot_moving
  * - attackMode
+ * - ballBearing
  * - ballRange
+ * - isGoalSeen
+ * - goalCenterBearing
  *
  * Writes:
  * - headMode
  * - target_theta
- * - target_range
+ * - target_x
  * - kick_speed
  * - virtualGoalLoc.World.x
  * - virtualGoalLoc.World.y
@@ -222,51 +225,67 @@ option opt_attack {
                 goto attack_done;
             }
             else {
-                if (state_time < T_TURN_BODY || is_robot_moving) {
+                if (is_robot_moving) {
                     stay;
                 }
                 else {
                     if (!isBallSeen) {
                         goto search_after_lost;
                     }
+                    else if (-THETA_ROTATE_TO_BALL < ballBearing && ballBearing < THETA_ROTATE_TO_BALL) {
+                        // ball bearing is already small enough; skip this step
+                        goto rotate_to_goal_before_shoot;
+                    }
+                    else if (state_time < T_TURN_BODY) {
+                        // wait for some time for the rotate command to be sent
+                        stay;
+                    }
                     else {
+                        // finished
                         goto rotate_to_goal_before_shoot;
                     }
                 }
             }
         }
         action {
-            //headMode = HorizontalTrack;
             headMode = CloseMid;
-            target_theta = ballBearing;      // TODO: anti-clockwise as positive, correct if necessary
+            // do not rotate if the ball is not seen, or if the ball bearing is already small enough
+            target_theta = (isBallSeen && -THETA_ROTATE_TO_BALL < ballBearing && ballBearing < THETA_ROTATE_TO_BALL) ? ballBearing : 0;
             target_x = 0;
+            goal_found_headMode = FarMid;   // default head mode for the next state rotate_to_goal_before_shoot
             behavior_rotate_around_center();
         }
     }
 
     state rotate_to_goal_before_shoot {             // 7
+        // TODO: try to make use of SLAM information
         decision {
             if (!isAttacker) {
                 goto attack_done;
             }
             else {
-                if (state_time < T_TURN_BODY || is_robot_moving) {
-                    stay;
-                }
-                else {
-                    if (isGoalSeen) {
-                        goto shoot;
-                    }
-                    else {
+                    if (!isGoalSeen) {
                         goto search_for_goal;
                     }
-                }
+                    else if (-THETA_ROTATE_TO_GOAL < goalCenterBearing && goalCenterBearing < THETA_ROTATE_TO_BALL) {
+                        // goal bearing is already small enough; skip this step
+                        goto shoot;
+                    }
+                    else if (state_time < T_TURN_BODY) {
+                        // wait for some time for the rotate command to be sent
+                        stay;
+                    }
+                    else {
+                        // finished
+                        goto shoot;
+                    }
             }
         }
         action {
-            //headMode = HorizontalTrack;
-            headMode = FarMid;
-            target_theta = goalCenterBearing;      // TODO: anti-clockwise as positive, correct if necessary
+            // first use the head mode when the goal is last found; switch to FarMid after rotating body
+            headMode = state_time < T_TURN_BODY ? goal_found_headMode : FarMid;
+            // do not rotate if the goal is not seen, or if the goal bearing is already small enough
+            target_theta = (isGoalSeen && -THETA_ROTATE_TO_GOAL < goalCenterBearing && goalCenterBearing < THETA_ROTATE_TO_GOAL) ? goalCenterBearing : 0;
             target_x = ballRange;
             behavior_rotate_around_center();
         }

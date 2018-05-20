@@ -6,6 +6,7 @@
  *
  * Writes:
  * - headMode
+ * - goal_found_headMode
  *
  * Behaves:
  * - behavior_nothing
@@ -108,8 +109,7 @@ option opt_search_for_goal
         }
         action
         {
-            // TODO: decide what head mode to use (track goal?)
-            // TODO: write symbols like goal range, goal bearing or head angle if necessary.
+            goal_found_headMode = headMode;
             behavior_nothing();
         }
     }

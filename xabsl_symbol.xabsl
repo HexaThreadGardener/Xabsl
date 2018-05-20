@@ -27,6 +27,9 @@ namespace xabsl_symbol("xabsl_symbols")
     float const T_FOLLOW_AFTER_KICK_OFF = 3000 "ms";      // maximum time to walk after kick off
     float const T_BLIND_FOLLOW_AFTER_SHOOT = 3000 "ms";   // maximum time to walk after shooting before the ball is seen (if ball is not seen longer than this time, search again)
     float const T_DRIBBLE = 4000 "ms";            // dribbling time used in dribble_kick attack mode
+
+    float const THETA_ROTATE_TO_BALL = 0.1 "rad";    // if ball bearing is within this range, skip the "rotate to ball" step before shooting
+    float const THETA_ROTATE_TO_GOAL = 0.2 "rad";    // if goal center bearing is within this range, skip the "rotate to goal" step before shooting
     
     
     
@@ -234,4 +237,6 @@ namespace xabsl_symbol("xabsl_symbols")
     float input theta_start_walking "rad";
 
     enum _attackMode internal attackMode;
+
+    enum _headMode internal goal_found_headMode;        // the head mode when the goal is found by opt_search_for_goal
 }
