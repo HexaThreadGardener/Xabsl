@@ -187,20 +187,18 @@ option opt_game_process
 
     state attack {     // 5
         decision {
-            if (isGameOver) {
-                goto game_over;
-            }
-            else if (pause) {
-                goto idle_state;
+            if (!action_done) {
+                stay;
             }
             else {
-                if (!action_done) {
-                    stay;
+                if (isGameOver) {
+                    goto game_over;
+                }
+                else if (pause) {
+                    goto idle_state;
                 }
                 else {
-                    stay;     // TODO: what to do after an attack is done? 
-                    // -> attack till a goal is scored. check isReady in all states after wait_for start
-                    // if isReady, goto wait_for_ready !!!!
+                    goto wait_for_ready;
                 }
             }
         }

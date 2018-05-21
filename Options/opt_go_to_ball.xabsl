@@ -13,6 +13,10 @@
  * Note: the whole process is Markov.
  *
  * Reads: 
+ * - isAttacker
+ * - isGameOver
+ * - isReady
+ * - pause
  * - is_within_tol              (whether the ball bearing is small enough for the robot to walk to it without in-place rotating)
  * - theta_start_walking        (expected abs(ball bearing) when walking is started, determined by min(THETA_TOL, <theta determined by R_TOL>))
  * - virtualGoalLoc.World.x     (specified by caller in XABSL, NOT USED FOR NOW)
@@ -46,28 +50,44 @@
  * NOTE: the arc/S logic is NOT implemented for now!
  */
 
+/* The decision template:
+
+            if (!isAttacker || isGameOver || isReady || pause) {
+                goto go_to_ball_done;
+            }
+            else {
+                // state decision here
+            }
+
+*/
+
 option opt_go_to_ball
 {
     initial state check_before_walk {                           // 0
         decision {
-            if (state_time < T_WAIT_BEFORE_WALK) {
-                stay;
+            if (!isAttacker || isGameOver || isReady || pause) {
+                goto go_to_ball_done;
             }
             else {
-                if (!isBallSeen) {
-                    goto search_for_ball;
+                if (state_time < T_WAIT_BEFORE_WALK) {
+                    stay;
                 }
                 else {
-	                if (ballRange < R_KICKABLE) {
-	                    // when the ball is already near (e.g. kickoff), use rotation mode to adjust toward the "goal" directly
-	                    goto rotate_to_ball;
-	                }
-	                else if (is_within_tol) {
-	                    goto during_walk;
-	                }
-	                else {
-	                    goto rotate_before_walk;
-	                }
+                    if (!isBallSeen) {
+                        goto search_for_ball;
+                    }
+                    else {
+                        if (ballRange < R_KICKABLE) {
+                            // when the ball is already near (e.g. kickoff), use rotation mode to adjust toward the "goal" directly
+                            goto rotate_to_ball;
+                        }
+                        else if (is_within_tol) {
+                            goto during_walk;
+                        }
+                        else {
+                            goto rotate_before_walk;
+                        }
+                    }
                 }
             }
         }
@@ -96,7 +116,12 @@ option opt_go_to_ball
                 stay;
             }
             else {
-                goto during_walk;
+                if (!isAttacker || isGameOver || isReady || pause) {
+                    goto go_to_ball_done;
+                }
+                else {
+                    goto during_walk;
+                }
             }
         }
         action {
@@ -113,7 +138,7 @@ option opt_go_to_ball
                 goto search_for_ball;
             }
             else {
-	            if (ballRange < R_KICKABLE) {
+	            if (ballRange < R_KICKABLE || !isAttacker || isGameOver || isReady || pause) {
 	                goto stop_walking;
 	            }
 	            else {
@@ -143,12 +168,17 @@ option opt_go_to_ball
                 stay;
             }
             else {
-                if (virtualGoalLoc.World.x * 2 == goalLocLeft.World.x + goalLocRight.World.x && virtualGoalLoc.World.y * 2 == goalLocLeft.World.y + goalLocRight.World.y) {
-                    // virtual "goal" is the actual goal
-                    goto rotate_before_shoot;
+                if (!isAttacker || isGameOver || isReady || pause) {
+                    goto go_to_ball_done;
                 }
                 else {
-                    goto rotate_to_ball;
+                    if (virtualGoalLoc.World.x * 2 == goalLocLeft.World.x + goalLocRight.World.x && virtualGoalLoc.World.y * 2 == goalLocLeft.World.y + goalLocRight.World.y) {
+                        // virtual "goal" is the actual goal
+                        goto rotate_before_shoot;
+                    }
+                    else {
+                        goto rotate_to_ball;
+                    }
                 }
             }
         }
@@ -163,7 +193,12 @@ option opt_go_to_ball
                 stay;
             }
             else {
-                goto go_to_ball_done;
+                if (!isAttacker || isGameOver || isReady || pause) {
+                    goto go_to_ball_done;
+                }
+                else {
+                    goto go_to_ball_done;
+                }
             }
         }
         action {
@@ -178,7 +213,10 @@ option opt_go_to_ball
                 stay;
             }
             else {
-                if (!isBallSeen) {
+                if (!isAttacker || isGameOver || isReady || pause) {
+                    goto go_to_ball_done;
+                }
+                else if (!isBallSeen) {
                     goto search_for_ball;
                 }
                 else if (-THETA_ROTATE_TO_BALL < ballBearing && ballBearing < THETA_ROTATE_TO_BALL) {
@@ -198,7 +236,8 @@ option opt_go_to_ball
         action {
             headMode = CloseMid;
             // do not rotate if the ball is not seen, or if the ball bearing is already small enough
-            target_theta = (isBallSeen && -THETA_ROTATE_TO_BALL < ballBearing && ballBearing < THETA_ROTATE_TO_BALL) ? ballBearing : 0;
+            target_theta = (isAttacker && !isGameOver && !isReady && !pause &&
+                isBallSeen && -THETA_ROTATE_TO_BALL < ballBearing && ballBearing < THETA_ROTATE_TO_BALL) ? ballBearing : 0;
             target_x = 0;
             behavior_rotate_around_center();
         }
@@ -211,7 +250,12 @@ option opt_go_to_ball
                 stay;
             }
             else {
-                goto go_to_ball_done;
+                if (!isAttacker || isGameOver || isReady || pause) {
+                    goto go_to_ball_done;
+                }
+                else {
+                    goto go_to_ball_done;
+                }
             }
         }
         action {
@@ -226,11 +270,16 @@ option opt_go_to_ball
     state search_for_ball {                     // 7
         // ball is lost; search again
         decision {
-            if (!action_done) {
-                stay;
+            if ((!isAttacker || isGameOver || isReady || pause) && !is_robot_moving) {
+                goto go_to_ball_done;
             }
             else {
-                goto check_before_walk;
+                if (!action_done) {
+                    stay;
+                }
+                else {
+                    goto check_before_walk;
+                }
             }
         }
         action {

@@ -10,6 +10,9 @@
  *
  * Reads:
  * - isAttacker
+ * - isGameOver
+ * - isReady
+ * - pause
  * - isBallSeen
  * - is_robot_moving
  * - attackMode
@@ -40,7 +43,7 @@
 
 /* The decision template:
 
-            if (!isAttacker) {
+            if (!isAttacker || isGameOver || isReady || pause) {
                 goto attack_done;
             }
             else {
@@ -54,7 +57,7 @@ option opt_attack {
     initial state search_kick_off {         // 0
         // no need to iterate over all directions; simply look down to locate ball
         decision {
-            if (!isAttacker) {
+            if (!isAttacker || isGameOver || isReady || pause) {
                 goto attack_done;
             }
             else {
@@ -79,28 +82,26 @@ option opt_attack {
     state rotate_kick_off {                 // 1
         // rotate a certain angle before touching the ball
         decision {
-            if (!isAttacker) {
-                goto attack_done;
+            if (state_time < T_TURN_BODY || is_robot_moving) {
+                stay;
             }
             else {
-                if (!isBallSeen) {
+                if (!isAttacker || isGameOver || isReady || pause) {
+                    goto attack_done;
+                }
+                else if (!isBallSeen) {
                     goto search_after_lost;
                 }
                 else {
-                    if (state_time < T_TURN_BODY || is_robot_moving) {
-                        stay;
+                    if (attackMode == kick_kick) {
+                        goto first_kick;
+                    }
+                    else if (attackMode == dribble_kick) {
+                        goto dribble;
                     }
                     else {
-                        if (attackMode == kick_kick) {
-                            goto first_kick;
-                        }
-                        else if (attackMode == dribble_kick) {
-                            goto dribble;
-                        }
-                        else {
-                            // ERROR: illegal attack mode
-                            stay;
-                        }
+                        // ERROR: illegal attack mode
+                        stay;
                     }
                 }
             }
@@ -116,12 +117,12 @@ option opt_attack {
     state first_kick {                      // 2
         // kick the ball softly along an angle to the side
         decision {
-            if (!isAttacker) {
-                goto attack_done;
+            if (!action_done) {
+                stay;
             }
             else {
-                if (!action_done) {
-                    stay;
+                if (!isAttacker || isGameOver || isReady || pause) {
+                    goto attack_done;
                 }
                 else {
                     goto follow_after_kick_off;
@@ -141,8 +142,8 @@ option opt_attack {
     state follow_after_kick_off {           // 3
         // walk straight ahead
         decision {
-            if (!isAttacker) {
-                goto attack_done;
+            if (!isAttacker || isGameOver || isReady || pause) {
+                goto stop_before_shoot;
             }
             else {
                 if (state_time > T_FOLLOW_AFTER_KICK_OFF) {
@@ -180,7 +181,7 @@ option opt_attack {
                 stay;
             }
             else {
-                if (!isAttacker) {
+                if (!isAttacker || isGameOver || isReady || pause) {
                     goto attack_done;
                 }
                 else {
@@ -199,7 +200,7 @@ option opt_attack {
                 stay;
             }
             else {
-                if (!isAttacker) {
+                if (!isAttacker || isGameOver || isReady || pause) {
                     goto attack_done;
                 }
                 else {
@@ -215,12 +216,12 @@ option opt_attack {
 
     state shoot {                           // 6
         decision {
-            if (!isAttacker) {
-                goto attack_done;
+            if (!action_done) {
+                stay;
             }
             else {
-                if (!action_done) {
-                    stay;
+                if (!isAttacker || isGameOver || isReady || pause) {
+                    goto attack_done;
                 }
                 else {
                     goto blind_follow_after_shoot;
@@ -240,8 +241,8 @@ option opt_attack {
     state blind_follow_after_shoot {        // 7
         // walk with head up until the ball is seen; search again if the ball is not seen for too long (>T_BLIND_FOLLOW_AFTER_SHOOT)
         decision {
-            if (!isAttacker) {
-                goto attack_done;
+            if (!isAttacker || isGameOver || isReady || pause) {
+                goto stop_before_shoot;
             }
             else {
                 if (isBallSeen) {
@@ -269,8 +270,8 @@ option opt_attack {
 
     state track_after_shoot {               // 8
         decision {
-            if (!isAttacker) {
-                goto attack_done;
+            if (!isAttacker || isGameOver || isReady || pause) {
+                goto stop_before_shoot;
             }
             else {
                 if (!isBallSeen) {
@@ -298,7 +299,7 @@ option opt_attack {
 
     state search_after_lost {               // 9
         decision {
-            if (!isAttacker) {
+            if ((!isAttacker || isGameOver || isReady || pause) && !is_robot_moving) {
                 goto attack_done;
             }
             else {
@@ -317,7 +318,7 @@ option opt_attack {
 
     state go_to_ball_from_any {             // 10
         decision {
-            if (!isAttacker) {
+            if ((!isAttacker || isGameOver || isReady || pause) && !is_robot_moving) {
                 goto attack_done;
             }
             else {
@@ -340,8 +341,8 @@ option opt_attack {
     state dribble {                         // 11
         // used by dribble_kick mode
         decision {
-            if (!isAttacker) {
-                goto attack_done;
+            if (!isAttacker || isGameOver || isReady || pause) {
+                goto stop_before_shoot;
             }
             else {
                 if (state_time < T_DRIBBLE) {
