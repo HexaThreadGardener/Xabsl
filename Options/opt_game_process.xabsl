@@ -20,7 +20,7 @@
  *
  * Calls:
  * - opt_defender_prepare
- * - opt_xddd_attack
+ * - opt_attack
  * - opt_search_for_ball_kick_off
  * - opt_penalty
  * - opt_free_kick
