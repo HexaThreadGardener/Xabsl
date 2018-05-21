@@ -1,0 +1,128 @@
+/*
+ * opt_rotate_before_shoot: Two-stage rotating process before shooting.
+ *
+ * The first stage: rotate to the ball.
+ * The second stage: center around the ball to face the goal.
+ *
+ * Reads:
+ * - isBallSeen
+ * - isGoalSeen
+ * - ballBearing
+ * - goalCenterBearing
+ *
+ * Writes:
+ * - headMode
+ * - target_theta
+ * - target_x
+ * - goal_found_headMode
+ *
+ * Calls:
+ * - opt_search_for_ball_kick_off
+ * - opt_search_for_goal
+ *
+ * Behaves:
+ * - behavior_rotate_around_center
+ * - behavior_nothing
+ */
+
+option opt_rotate_before_shoot {
+    initial state rotate_to_ball {             // 0
+        decision {
+            if (is_robot_moving) {
+                stay;
+            }
+            else {
+                if (!isBallSeen) {
+                    goto search_for_ball;
+                }
+                else if (-THETA_ROTATE_TO_BALL < ballBearing && ballBearing < THETA_ROTATE_TO_BALL) {
+                    // ball bearing is already small enough; skip this step
+                    goto rotate_to_goal;
+                }
+                else if (state_time < T_TURN_BODY) {
+                    // wait for some time for the rotate command to be sent
+                    stay;
+                }
+                else {
+                    // finished
+                    goto rotate_to_goal;
+                }
+            }
+        }
+        action {
+            headMode = CloseMid;
+            // do not rotate if the ball is not seen, or if the ball bearing is already small enough
+            target_theta = (isBallSeen && -THETA_ROTATE_TO_BALL < ballBearing && ballBearing < THETA_ROTATE_TO_BALL) ? ballBearing : 0;
+            target_x = 0;
+            goal_found_headMode = FarMid;   // default head mode for the next state rotate_to_goal
+            behavior_rotate_around_center();
+        }
+    }
+
+    state rotate_to_goal {             // 1
+        // TODO: try to make use of SLAM information
+        decision {
+            if (!isGoalSeen) {
+                goto search_for_goal;
+            }
+            else if (-THETA_ROTATE_TO_GOAL < goalCenterBearing && goalCenterBearing < THETA_ROTATE_TO_BALL) {
+                // goal bearing is already small enough; skip this step
+                goto done;
+            }
+            else if (state_time < T_TURN_BODY) {
+                // wait for some time for the rotate command to be sent
+                stay;
+            }
+            else {
+                // finished
+                goto done;
+            }
+        }
+        action {
+            // first use the head mode when the goal is last found; switch to FarMid after rotating body
+            headMode = state_time < T_TURN_BODY ? goal_found_headMode : FarMid;
+            // do not rotate if the goal is not seen, or if the goal bearing is already small enough
+            target_theta = (isGoalSeen && -THETA_ROTATE_TO_GOAL < goalCenterBearing && goalCenterBearing < THETA_ROTATE_TO_GOAL) ? goalCenterBearing : 0;
+            target_x = ballRange;
+            behavior_rotate_around_center();
+        }
+    }
+
+    state search_for_ball {                 // 2
+        decision {
+            if (!action_done) {
+                stay;
+            }
+            else {
+                goto rotate_to_ball;
+            }
+        }
+        action {
+            opt_search_for_ball_kick_off();
+        }
+    }
+
+    state search_for_goal {                 // 3
+        decision {
+            if (!action_done) {
+                stay;
+            }
+            else {
+                goto rotate_to_goal;
+            }
+        }
+        action {
+            opt_search_for_goal();
+        }
+    }
+
+    state done {                            // 4
+        decision {
+            stay;
+        }
+        action {
+            behavior_nothing();
+        }
+    }
+
+}

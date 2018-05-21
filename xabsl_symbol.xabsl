@@ -232,6 +232,8 @@ namespace xabsl_symbol("xabsl_symbols")
     bool input is_within_tol;
     bool input is_left;
     float input tol_theta "rad";
+    float output virtualGoalLoc.World.x "mm";        // NOT USED FOR NOW
+    float output virtualGoalLoc.World.y "mm";        // NOT USED FOR NOW
     float input virtualGoalRange "m";
     float input virtualGoalBearing "rad";
     float input theta_start_walking "rad";

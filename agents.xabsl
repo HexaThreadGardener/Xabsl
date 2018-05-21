@@ -10,5 +10,7 @@ include "Options/opt_search_for_ball_kick_off.xabsl";
 include "Options/opt_go_to_ball.xabsl";
 include "Options/opt_attack.xabsl";
 include "Options/opt_search_for_goal.xabsl";
+include "Options/opt_stop_walking.xabsl";
+include "Options/opt_rotate_before_shoot.xabsl";
 
 agent Decision("Xabsl", opt_game_process);

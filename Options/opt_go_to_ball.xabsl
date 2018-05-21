@@ -27,17 +27,25 @@
  * - target_theta
  * - target_range
  *
+ * Calls:
+ * - opt_stop_walking
+ * - opt_rotate_before_shoot
+ * - opt_search_for_goal
+ * - opt_search_for_ball_kick_off
+ *
  * Behaves:
  * - behavior_nothing
  * - behavior_round_clockwise
- * - behavior_during_walk
- * - behavior_stop_walk
- * - behavior_center_round_clockwise
+ * - behavior_during_walk        (NOT USED FOR NOW)
+ * - behavior_walk_to_ball
+ * - behavior_rotate_around_center
  *
  * TODO: this part needs review
  *
  * NOTE: the arc/S logic is NOT implemented for now!
  */
+
+// TODO: check whether isBallSeen when necessary
 
 option opt_go_to_ball
 {
@@ -49,7 +57,7 @@ option opt_go_to_ball
             else {
                 if (ballRange < R_KICKABLE) {
                     // when the ball is already near (e.g. kickoff), use rotation mode to adjust toward the "goal" directly
-                    goto rotate_after_walk;
+                    goto rotate_to_ball;
                 }
                 else if (is_within_tol) {
                     goto during_walk;
@@ -98,7 +106,7 @@ option opt_go_to_ball
     state during_walk {                            // 2
         decision {
             if (ballRange < R_KICKABLE) {
-                goto stop_walking_1;
+                goto stop_walking;
             }
             else {
                 stay;
@@ -120,37 +128,75 @@ option opt_go_to_ball
         }
     }
 
-    state stop_walking_1 {               // 3
+    state stop_walking {               // 3
+        decision {
+            if (!action_done) {
+                stay;
+            }
+            else {
+                if (virtualGoalLoc.World.x * 2 == goalLocLeft.World.x + goalLocRight.World.x && virtualGoalLoc.World.y * 2 == goalLocLeft.World.y + goalLocRight.World.y) {
+                    // virtual "goal" is the actual goal
+                    goto rotate_before_shoot;
+                }
+                else {
+                    goto rotate_to_ball;
+                }
+            }
+        }
+        action {
+            opt_stop_walking();
+        }
+    }
+
+    state rotate_before_shoot {        // 4
+        decision {
+            if (!action_done) {
+                stay;
+            }
+            else {
+                goto go_to_ball_done;
+            }
+        }
+        action {
+            opt_rotate_before_shoot();
+        }
+    }
+
+    state rotate_to_ball {            // 5
+        // copied from opt_rotate_before_shoot; sync manually if necessary
         decision {
             if (is_robot_moving) {
                 stay;
             }
             else {
-                goto stop_walking_2;
+                if (!isBallSeen) {
+                    goto search_for_ball;
+                }
+                else if (-THETA_ROTATE_TO_BALL < ballBearing && ballBearing < THETA_ROTATE_TO_BALL) {
+                    // ball bearing is already small enough; skip this step
+                    goto rotate_to_virtual_goal;
+                }
+                else if (state_time < T_TURN_BODY) {
+                    // wait for some time for the rotate command to be sent
+                    stay;
+                }
+                else {
+                    // finished
+                    goto rotate_to_virtual_goal;
+                }
             }
         }
         action {
-            headMode = BothTrack;
-            behavior_stop_walk();
+            headMode = CloseMid;
+            // do not rotate if the ball is not seen, or if the ball bearing is already small enough
+            target_theta = (isBallSeen && -THETA_ROTATE_TO_BALL < ballBearing && ballBearing < THETA_ROTATE_TO_BALL) ? ballBearing : 0;
+            target_x = 0;
+            behavior_rotate_around_center();
         }
+            
     }
 
-    state stop_walking_2 {              // 4
-        decision {
-            if (state_time < 2 * T) {
-                stay;
-            }
-            else {
-                goto rotate_after_walk;
-            }
-        }
-        action {
-            headMode = BothTrack;
-            behavior_nothing();
-        }
-    }
-
-    state rotate_after_walk {               // 5
+    state rotate_to_virtual_goal {               // 6
         decision {
             if (state_time < T_TURN_BODY || is_robot_moving) {
                 stay;
@@ -162,13 +208,28 @@ option opt_go_to_ball
         action {
             // look at goal and center around ball
             headMode = FarMid;
-            target_theta = -virtualGoalBearing; // TODO: assume anti-clockwise as positive; fix if necessary
+            target_theta = virtualGoalBearing;
             target_x = ballRange;
             behavior_rotate_around_center();
         }
     }
 
-    target state go_to_ball_done {          // 6
+    state search_for_ball {                     // 7
+        // ball is lost; search again
+        decision {
+            if (!action_done) {
+                stay;
+            }
+            else {
+                goto check_before_walk;
+            }
+        }
+        action {
+            opt_search_for_ball_kick_off();
+        }
+    }
+
+    target state go_to_ball_done {              // 8
         decision {
             stay;
         }

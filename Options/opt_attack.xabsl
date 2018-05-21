@@ -30,7 +30,6 @@
  * - behavior_nothing
  * - behavior_rotate_around_center
  * - behavior_walk
- * - behavior_stop_walk
  * - behavior_walk_to_ball
  *
  * Calls:
@@ -149,7 +148,7 @@ option opt_attack {
                 if (state_time > T_FOLLOW_AFTER_KICK_OFF) {
                     if (isBallSeen) {
                         // have walked for long enough, stop and prepare to kick the ball
-                        goto stop_1_before_shoot;
+                        goto stop_before_shoot;
                     }
                     else {
                         // the ball is lost, search for it again
@@ -159,7 +158,7 @@ option opt_attack {
                 else {
                     if (isBallSeen && ballRange < R_KICKABLE) {
                         // the ball is already very close, stop and prepare to kick it
-                        goto stop_1_before_shoot;
+                        goto stop_before_shoot;
                     }
                     else {
                         // the ball is too far, continue walking
@@ -175,142 +174,46 @@ option opt_attack {
         }
     }
 
-    state stop_1_before_shoot {               // 4
+    state stop_before_shoot {                   // 4
         decision {
-            if (!isAttacker) {
-                goto attack_done;
+            if (!action_done) {
+                stay;
             }
             else {
-                if (is_robot_moving) {
-                    stay;
+                if (!isAttacker) {
+                    goto attack_done;
                 }
                 else {
-                    goto stop_2_before_shoot;
+                    goto rotate_before_shoot;
                 }
             }
         }
         action {
-            // look at the goal
-            //headMode = THETA_KICKOFF > 0 ? FarLeft : FarRight;
-            headMode = FarMid;
-
-            // set velocity to 0
-            behavior_stop_walk();
+            opt_stop_walking();
         }
     }
 
-    state stop_2_before_shoot {             // 5
+    state rotate_before_shoot {                // 5
         decision {
-            if (!isAttacker) {
-                goto attack_done;
+            if (!action_done) {
+                stay;
             }
             else {
-                if (state_time < 2 * T) {
-                    stay;
+                if (!isAttacker) {
+                    goto attack_done;
                 }
                 else {
-                    goto rotate_to_ball_before_shoot;
+                    goto shoot;
                 }
             }
         }
         action {
-            headMode = CloseMid;
-            behavior_nothing();
+            opt_rotate_before_shoot();
         }
     }
 
-    state rotate_to_ball_before_shoot {             // 6
-        decision {
-            if (!isAttacker) {
-                goto attack_done;
-            }
-            else {
-                if (is_robot_moving) {
-                    stay;
-                }
-                else {
-                    if (!isBallSeen) {
-                        goto search_after_lost;
-                    }
-                    else if (-THETA_ROTATE_TO_BALL < ballBearing && ballBearing < THETA_ROTATE_TO_BALL) {
-                        // ball bearing is already small enough; skip this step
-                        goto rotate_to_goal_before_shoot;
-                    }
-                    else if (state_time < T_TURN_BODY) {
-                        // wait for some time for the rotate command to be sent
-                        stay;
-                    }
-                    else {
-                        // finished
-                        goto rotate_to_goal_before_shoot;
-                    }
-                }
-            }
-        }
-        action {
-            headMode = CloseMid;
-            // do not rotate if the ball is not seen, or if the ball bearing is already small enough
-            target_theta = (isBallSeen && -THETA_ROTATE_TO_BALL < ballBearing && ballBearing < THETA_ROTATE_TO_BALL) ? ballBearing : 0;
-            target_x = 0;
-            goal_found_headMode = FarMid;   // default head mode for the next state rotate_to_goal_before_shoot
-            behavior_rotate_around_center();
-        }
-    }
 
-    state rotate_to_goal_before_shoot {             // 7
-        // TODO: try to make use of SLAM information
-        decision {
-            if (!isAttacker) {
-                goto attack_done;
-            }
-            else {
-                    if (!isGoalSeen) {
-                        goto search_for_goal;
-                    }
-                    else if (-THETA_ROTATE_TO_GOAL < goalCenterBearing && goalCenterBearing < THETA_ROTATE_TO_BALL) {
-                        // goal bearing is already small enough; skip this step
-                        goto shoot;
-                    }
-                    else if (state_time < T_TURN_BODY) {
-                        // wait for some time for the rotate command to be sent
-                        stay;
-                    }
-                    else {
-                        // finished
-                        goto shoot;
-                    }
-            }
-        }
-        action {
-            // first use the head mode when the goal is last found; switch to FarMid after rotating body
-            headMode = state_time < T_TURN_BODY ? goal_found_headMode : FarMid;
-            // do not rotate if the goal is not seen, or if the goal bearing is already small enough
-            target_theta = (isGoalSeen && -THETA_ROTATE_TO_GOAL < goalCenterBearing && goalCenterBearing < THETA_ROTATE_TO_GOAL) ? goalCenterBearing : 0;
-            target_x = ballRange;
-            behavior_rotate_around_center();
-        }
-    }
-
-    state search_for_goal {   //8
-        decision {
-		    if (!isAttacker) {
-		        goto attack_done;
-		    }
-		    else {
-                if (!action_done) {
-                    stay;
-                }
-                else {
-                    goto rotate_to_goal_before_shoot;
-                }
-            }
-        }
-        action {
-            opt_search_for_goal();
-        }
-    }
-
-    state shoot {                           // 9
+    state shoot {                           // 6
         decision {
             if (!isAttacker) {
                 goto attack_done;
@@ -334,7 +237,7 @@ option opt_attack {
         }
     }
 
-    state blind_follow_after_shoot {        // 10
+    state blind_follow_after_shoot {        // 7
         // walk with head up until the ball is seen; search again if the ball is not seen for too long (>T_BLIND_FOLLOW_AFTER_SHOOT)
         decision {
             if (!isAttacker) {
@@ -364,7 +267,7 @@ option opt_attack {
         }
     }
 
-    state track_after_shoot {               // 11
+    state track_after_shoot {               // 8
         decision {
             if (!isAttacker) {
                 goto attack_done;
@@ -376,7 +279,7 @@ option opt_attack {
                 else {
                     if (ballRange < R_KICKABLE) {
                         // ball is near enough, prepare to shoot again
-                        goto stop_1_before_shoot;
+                        goto stop_before_shoot;
                     }
                     else {
                         stay;
@@ -393,7 +296,7 @@ option opt_attack {
         }
     }
 
-    state search_after_lost {               // 12
+    state search_after_lost {               // 9
         decision {
             if (!isAttacker) {
                 goto attack_done;
@@ -412,7 +315,7 @@ option opt_attack {
         }
     }
 
-    state go_to_ball_from_any {             // 13
+    state go_to_ball_from_any {             // 10
         decision {
             if (!isAttacker) {
                 goto attack_done;
@@ -427,11 +330,14 @@ option opt_attack {
             }
         }
         action {
+            // pass the goal location to opt_go_to_ball
+            virtualGoalLoc.World.x = (goalLocLeft.World.x + goalLocRight.World.x) / 2;
+            virtualGoalLoc.World.y = (goalLocLeft.World.y + goalLocRight.World.y) / 2;
             opt_go_to_ball();
         }
     }
 
-    state dribble {                         // 14
+    state dribble {                         // 11
         // used by dribble_kick mode
         decision {
             if (!isAttacker) {
@@ -442,7 +348,7 @@ option opt_attack {
                     stay;
                 }
                 else {
-                    goto stop_1_before_shoot;
+                    goto stop_before_shoot;
                 }
             }
         }
@@ -456,7 +362,7 @@ option opt_attack {
         }
     }
 
-    target state attack_done {              // 15
+    target state attack_done {              // 12
         decision {
             stay;
         }
