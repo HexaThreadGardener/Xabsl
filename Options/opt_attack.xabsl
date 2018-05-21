@@ -82,7 +82,11 @@ option opt_attack {
     state rotate_kick_off {                 // 1
         // rotate a certain angle before touching the ball
         decision {
-            if (state_time < T_TURN_BODY || is_robot_moving) {
+            if (THETA_KICKOFF == 0) {
+                // skip this rotating state
+                goto first_attack_mux;
+            }
+            else if (state_time < T_TURN_BODY || is_robot_moving) {
                 stay;
             }
             else {
@@ -93,16 +97,7 @@ option opt_attack {
                     goto search_after_lost;
                 }
                 else {
-                    if (attackMode == kick_kick) {
-                        goto first_kick;
-                    }
-                    else if (attackMode == dribble_kick) {
-                        goto dribble;
-                    }
-                    else {
-                        // ERROR: illegal attack mode
-                        stay;
-                    }
+                    goto first_attack_mux;
                 }
             }
         }
@@ -114,7 +109,26 @@ option opt_attack {
         }
     }
 
-    state first_kick {                      // 2
+    state first_attack_mux {                // 2
+        // go to either first_kick or dribble according to attackMode
+        decision {
+            if (attackMode == kick_kick) {
+                goto first_kick;
+            }
+            else if (attackMode == dribble_kick) {
+                goto dribble;
+            }
+            else {
+                // ERROR: illegal attack mode
+                stay;
+            }
+        }
+        action {
+            behavior_nothing();
+        }
+    }
+
+    state first_kick {                      // 3
         // kick the ball softly along an angle to the side
         decision {
             if (!action_done) {
@@ -139,7 +153,7 @@ option opt_attack {
         }
     }
 
-    state follow_after_kick_off {           // 3
+    state follow_after_kick_off {           // 4
         // walk straight ahead
         decision {
             if (!isAttacker || isGameOver || isReady || pause) {
@@ -175,7 +189,7 @@ option opt_attack {
         }
     }
 
-    state stop_before_shoot {                   // 4
+    state stop_before_shoot {                   // 5
         decision {
             if (!action_done) {
                 stay;
@@ -194,7 +208,7 @@ option opt_attack {
         }
     }
 
-    state rotate_before_shoot {                // 5
+    state rotate_before_shoot {                // 6
         decision {
             if (!action_done) {
                 stay;
@@ -214,7 +228,7 @@ option opt_attack {
     }
 
 
-    state shoot {                           // 6
+    state shoot {                           // 7
         decision {
             if (!action_done) {
                 stay;
@@ -238,7 +252,7 @@ option opt_attack {
         }
     }
 
-    state blind_follow_after_shoot {        // 7
+    state blind_follow_after_shoot {        // 8
         // walk with head up until the ball is seen; search again if the ball is not seen for too long (>T_BLIND_FOLLOW_AFTER_SHOOT)
         decision {
             if (!isAttacker || isGameOver || isReady || pause) {
@@ -268,7 +282,7 @@ option opt_attack {
         }
     }
 
-    state track_after_shoot {               // 8
+    state track_after_shoot {               // 9
         decision {
             if (!isAttacker || isGameOver || isReady || pause) {
                 goto stop_before_shoot;
@@ -297,7 +311,7 @@ option opt_attack {
         }
     }
 
-    state search_after_lost {               // 9
+    state search_after_lost {               // 10
         decision {
             if ((!isAttacker || isGameOver || isReady || pause) && !is_robot_moving) {
                 goto attack_done;
@@ -316,7 +330,7 @@ option opt_attack {
         }
     }
 
-    state go_to_ball_from_any {             // 10
+    state go_to_ball_from_any {             // 11
         decision {
             if ((!isAttacker || isGameOver || isReady || pause) && !is_robot_moving) {
                 goto attack_done;
@@ -338,7 +352,7 @@ option opt_attack {
         }
     }
 
-    state dribble {                         // 11
+    state dribble {                         // 12
         // used by dribble_kick mode
         decision {
             if (!isAttacker || isGameOver || isReady || pause) {
@@ -363,7 +377,7 @@ option opt_attack {
         }
     }
 
-    target state attack_done {              // 12
+    target state attack_done {              // 13
         decision {
             stay;
         }
