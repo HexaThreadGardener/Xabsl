@@ -18,6 +18,7 @@
  * - virtualGoalLoc.World.x     (specified by caller in XABSL, NOT USED FOR NOW)
  * - virtualGoalLoc.World.y     (specified by caller in XABSL, NOT USED FOR NOW)
  * - virtualGoalBearing         (given by @cpp, NOT USED FOR NOW)
+ * - isBallSeen
  * - ballRange
  * - ballBearing
  * - is_robot_moving
@@ -45,8 +46,6 @@
  * NOTE: the arc/S logic is NOT implemented for now!
  */
 
-// TODO: check whether isBallSeen when necessary
-
 option opt_go_to_ball
 {
     initial state check_before_walk {                           // 0
@@ -55,15 +54,20 @@ option opt_go_to_ball
                 stay;
             }
             else {
-                if (ballRange < R_KICKABLE) {
-                    // when the ball is already near (e.g. kickoff), use rotation mode to adjust toward the "goal" directly
-                    goto rotate_to_ball;
-                }
-                else if (is_within_tol) {
-                    goto during_walk;
+                if (!isBallSeen) {
+                    goto search_for_ball;
                 }
                 else {
-                    goto rotate_before_walk;
+	                if (ballRange < R_KICKABLE) {
+	                    // when the ball is already near (e.g. kickoff), use rotation mode to adjust toward the "goal" directly
+	                    goto rotate_to_ball;
+	                }
+	                else if (is_within_tol) {
+	                    goto during_walk;
+	                }
+	                else {
+	                    goto rotate_before_walk;
+	                }
                 }
             }
         }
@@ -105,11 +109,16 @@ option opt_go_to_ball
 
     state during_walk {                            // 2
         decision {
-            if (ballRange < R_KICKABLE) {
-                goto stop_walking;
+            if (!isBallSeen) {
+                goto search_for_ball;
             }
             else {
-                stay;
+	            if (ballRange < R_KICKABLE) {
+	                goto stop_walking;
+	            }
+	            else {
+	                stay;
+	            }
             }
         }
         action {
